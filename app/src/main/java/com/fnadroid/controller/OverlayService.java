@@ -35,7 +35,10 @@ public class OverlayService extends Service {
         try {
             File f = new File("/sdcard/FNADroidController/config.json");
             cfg = new JSONObject(new String(java.nio.file.Files.readAllBytes(f.toPath())));
-        } catch(Exception e) { cfg = new JSONObject(); }
+        } catch(Exception e) {
+            Log.e("FNADroid", "CONFIG LOAD FAILED", e);
+            cfg = new JSONObject();
+        }
         bin = getApplicationInfo().nativeLibraryDir + "/fnainput";
     }
 
@@ -43,7 +46,9 @@ public class OverlayService extends Service {
         try {
             inputProcess = new ProcessBuilder("su", "-c", bin).redirectErrorStream(true).start();
             inputWriter = new BufferedWriter(new OutputStreamWriter(inputProcess.getOutputStream()));
-        } catch(Exception ignored) {}
+        } catch(Exception e) {
+            Log.e("FNADroid", "Unhandled overlay exception", e);
+        }
     }
 
     synchronized void send(String action,String key){
@@ -52,7 +57,9 @@ public class OverlayService extends Service {
             inputWriter.write(action + " " + key);
             inputWriter.newLine();
             inputWriter.flush();
-        } catch(Exception ignored) {}
+        } catch(Exception e) {
+            Log.e("FNADroid", "Unhandled overlay exception", e);
+        }
     }
 
     void keyDown(String key){
@@ -100,7 +107,9 @@ public class OverlayService extends Service {
                 views.add(j);
                 wm.addView(j,lp(jr*2,jr*2,cx-jr,cy-jr));
             }
-        } catch(Exception ignored){}
+        } catch(Exception e) {
+            Log.e("FNADroid", "Unhandled overlay exception", e);
+        }
 
         try {
             JSONArray a=cfg.getJSONArray("buttons");
@@ -118,7 +127,9 @@ public class OverlayService extends Service {
                 views.add(v);
                 wm.addView(v,lp(r*2,r*2,cx-r,cy-r));
             }
-        } catch(Exception ignored){}
+        } catch(Exception e) {
+            Log.e("FNADroid", "Unhandled overlay exception", e);
+        }
     }
 
     void releaseAll(){
@@ -130,9 +141,13 @@ public class OverlayService extends Service {
 
     @Override public void onDestroy(){
         releaseAll();
-        try { if(inputWriter != null){ inputWriter.write("quit\n"); inputWriter.flush(); } } catch(Exception ignored){}
+        try { if(inputWriter != null){ inputWriter.write("quit\n"); inputWriter.flush(); } } catch(Exception e) {
+            Log.e("FNADroid", "Unhandled overlay exception", e);
+        }
         if(inputProcess != null) inputProcess.destroy();
-        for(View v:views) try{wm.removeView(v);}catch(Exception ignored){}
+        for(View v:views) try{wm.removeView(v);} catch(Exception e) {
+            Log.e("FNADroid", "Unhandled overlay exception", e);
+        }
         views.clear();
         super.onDestroy();
     }
