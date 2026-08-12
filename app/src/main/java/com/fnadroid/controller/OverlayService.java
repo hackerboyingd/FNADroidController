@@ -8,6 +8,7 @@ import android.provider.Settings;
 import android.view.*;
 import java.io.*;
 import java.util.*;
+import android.util.Log;
 import org.json.*;
 
 public class OverlayService extends Service {
